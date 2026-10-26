@@ -13,6 +13,12 @@ export default defineConfig({
   },
 
   themeConfig: {
+    logo: {
+      light: '/brand/flowform-logo-light.svg',
+      dark: '/brand/flowform-logo-dark.svg',
+      alt: 'FlowForm'
+    },
+    siteTitle: false,
     nav: [
       { text: 'Guide', link: '/guide/quickstart' },
       { text: 'API Reference', link: '/api/overview' },
