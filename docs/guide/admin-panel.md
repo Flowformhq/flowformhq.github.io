@@ -1,6 +1,6 @@
 # Admin Panel
 
-FlowForm includes a full administration interface built with [Filament 4](https://filamentphp.com). The admin panel lets you manage every aspect of the form engine without writing code.
+FlowForm includes a full administration interface built with [Filament 5](https://filamentphp.com). The admin panel lets you manage every aspect of the form engine without writing code.
 
 ## Accessing the Panel
 

@@ -1,8 +1,80 @@
 # Forms API
 
-All form endpoints are public and require no authentication.
+FlowForm supports two operational modes:
+- **Mode 1: Headless Form Endpoints** for static sites (Web3Forms / Formspree alternative).
+- **Mode 2: Schema-Driven Forms** for dynamic multi-step wizards with conditional logic.
 
-## List Active Forms
+All form discovery and endpoint submission routes are public and require no bearer token.
+
+---
+
+## Mode 1: Submit to Headless Endpoint (HTML / Formspree Mode)
+
+Submit any standard HTML form directly to your FlowForm instance with zero JavaScript.
+
+```
+POST /f/{slug}
+```
+
+### Supported Special Fields
+
+| Field Name | Type | Description |
+| :--- | :--- | :--- |
+| `_gotcha` / `_honeypot` | hidden input | Anti-spam honeypot. If filled by automated bots, the submission is silently discarded. |
+| `_next` / `_redirect` | hidden input | Target URL to redirect the user after successful submission. Defaults to the form's configured redirect URL. |
+
+### Example HTML Form
+
+```html
+<form action="https://demo.flowformhq.com/f/contact" method="POST">
+  <input type="text" name="name" placeholder="Your Name" required />
+  <input type="email" name="email" placeholder="you@company.com" required />
+  <textarea name="message" placeholder="Your message..."></textarea>
+
+  <!-- Spam Honeypot -->
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+
+  <!-- Redirect after submission -->
+  <input type="hidden" name="_next" value="https://mysite.com/thanks" />
+
+  <button type="submit">Submit</button>
+</form>
+```
+
+---
+
+## Mode 1: Submit via AJAX / JSON
+
+Send raw JSON payloads directly from your frontend without multi-step wizard state machines.
+
+```
+POST /api/v1/f/{slug}
+```
+
+### Request
+
+```bash
+curl -X POST http://localhost:8000/api/v1/f/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alex Miller",
+    "email": "alex@startup.com",
+    "message": "Interested in enterprise self-hosting."
+  }'
+```
+
+### Response (`200 OK`)
+
+```json
+{
+  "message": "Submission received successfully",
+  "uuid": "9e5f39e4-6a9b-4395-8128-d7318dbbc892"
+}
+```
+
+---
+
+## Mode 2: List Active Forms
 
 Returns a paginated list of all active forms.
 

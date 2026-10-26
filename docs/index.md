@@ -4,7 +4,7 @@ layout: home
 hero:
   name: FlowForm
   text: Headless, API-first form and workflow engine
-  tagline: Build multi-step forms, conditional logic, and submission workflows with a clean REST API. Powered by Laravel 13 and Filament 4.
+  tagline: Build multi-step forms, conditional logic, and submission workflows with a clean REST API. Powered by Laravel 13 and Filament 5.
   actions:
     - theme: brand
       text: Get Started
@@ -28,5 +28,5 @@ features:
   - title: Entity Records
     details: Group related submission values into repeatable entity records for complex data structures like line items or nested objects.
   - title: Filament Admin Panel
-    details: Manage forms, fields, steps, submissions, and field types through a full-featured admin UI built with Filament 4.
+    details: Manage forms, fields, steps, submissions, and field types through a full-featured admin UI built with Filament 5.
 ---

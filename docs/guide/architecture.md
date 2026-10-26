@@ -6,8 +6,8 @@ FlowForm is a headless, API-first, schema-driven form engine built with Laravel.
 
 | Layer | Technology |
 |---|---|
-| Backend | PHP 8.3 / Laravel 13 |
-| Admin Panel | Filament 4 |
+| Backend | PHP 8.4 / Laravel 13 |
+| Admin Panel | Filament 5 |
 | Authentication | Laravel Sanctum (API tokens) + Socialite (GitHub, Google OAuth) |
 | Testing | Pest PHP |
 | API Documentation | Scribe (OpenAPI) |

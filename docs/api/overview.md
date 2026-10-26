@@ -117,16 +117,25 @@ Retry-After: 30
 
 ## Endpoint Summary
 
-### Public (no authentication required)
+### Mode 1: Headless Form Endpoints (Web3Forms / Formspree Alternative)
 
-| Method | Endpoint                          | Description                  |
-| ------ | --------------------------------- | ---------------------------- |
-| GET    | `/api/v1/forms`                   | List active forms (paginated)|
-| GET    | `/api/v1/forms/{uuid}`            | Get form by UUID             |
-| GET    | `/api/v1/forms/{slug}/by-slug`    | Get form by slug             |
-| GET    | `/api/v1/forms/{uuid}/schema`     | Full form schema             |
+Public endpoints for static sites (Astro, Next.js, Hugo, HTML) requiring zero bearer token authentication:
 
-### Authenticated (bearer token required)
+| Method | Endpoint             | Description                                                   |
+| ------ | -------------------- | ------------------------------------------------------------- |
+| POST   | `/f/{slug}`          | Standard HTML form submission with `_next` redirect & honeypot |
+| POST   | `/api/v1/f/{slug}`   | Headless JSON / AJAX endpoint returning HTTP 200 + UUID       |
+
+### Mode 2: Multi-Step Forms & Schemas (Public)
+
+| Method | Endpoint                       | Description                   |
+| ------ | ------------------------------ | ----------------------------- |
+| GET    | `/api/v1/forms`                | List active forms (paginated) |
+| GET    | `/api/v1/forms/{uuid}`         | Get form by UUID              |
+| GET    | `/api/v1/forms/{slug}/by-slug` | Get form by slug              |
+| GET    | `/api/v1/forms/{uuid}/schema`  | Full form schema              |
+
+### Mode 2: Form Submissions & State Machine (Authenticated)
 
 | Method | Endpoint                                  | Description                     |
 | ------ | ----------------------------------------- | ------------------------------- |

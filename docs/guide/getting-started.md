@@ -1,6 +1,6 @@
 # Getting Started
 
-FlowForm is a headless, API-first form and workflow engine built with Laravel 13, Filament 4, and PHP 8.3. This guide walks you through installation to your first API call.
+FlowForm is a headless, API-first form and workflow engine built with Laravel 13, Filament 5, and PHP 8.4. This guide walks you through installation to your first API call.
 
 ## Requirements
 
