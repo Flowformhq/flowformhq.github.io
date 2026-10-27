@@ -50,6 +50,7 @@ export default defineConfig({
           items: [
             { text: 'Field-Level Encryption', link: '/guide/security-encryption' },
             { text: 'Webhooks & HMAC Verification', link: '/guide/webhooks' },
+            { text: 'Compliance (GDPR, HIPAA, SOC 2)', link: '/guide/compliance' },
           ],
         },
         {
