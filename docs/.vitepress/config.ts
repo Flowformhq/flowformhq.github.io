@@ -43,6 +43,13 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Security & Reliability',
+          items: [
+            { text: 'Field-Level Encryption', link: '/guide/security-encryption' },
+            { text: 'Webhooks & HMAC Verification', link: '/guide/webhooks' },
+          ],
+        },
+        {
           text: 'Integration',
           items: [
             { text: 'Starter Kits Overview', link: '/guide/starter-kits' },
