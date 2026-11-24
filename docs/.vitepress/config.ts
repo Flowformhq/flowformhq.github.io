@@ -46,6 +46,20 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Submit From Any Stack',
+          items: [
+            { text: 'Overview & Endpoints', link: '/guide/endpoints/' },
+            { text: 'HTML Forms', link: '/guide/endpoints/html' },
+            { text: 'JavaScript (fetch & FormData)', link: '/guide/endpoints/javascript' },
+            { text: 'Next.js', link: '/guide/endpoints/nextjs' },
+            { text: 'Astro', link: '/guide/endpoints/astro' },
+            { text: 'Nuxt', link: '/guide/endpoints/nuxt' },
+            { text: 'SvelteKit', link: '/guide/endpoints/sveltekit' },
+            { text: 'Static Site Generators', link: '/guide/endpoints/static-site-generators' },
+            { text: 'Mobile & Server Clients', link: '/guide/endpoints/mobile-and-servers' },
+          ],
+        },
+        {
           text: 'Security & Reliability',
           items: [
             { text: 'Field-Level Encryption', link: '/guide/security-encryption' },
