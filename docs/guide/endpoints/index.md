@@ -1,6 +1,6 @@
 # Submit From Any Stack
 
-FlowForm lets any website, app, or server send form submissions to a single hosted or self-hosted endpoint without building a backend or setting up SMTP.
+FlowForm lets any website, app, or server send form submissions to a single hosted or self-hosted endpoint without building your own backend.
 
 Create an **Endpoint** form in the FlowForm admin panel, copy its `slug` or `access_key`, and point your form or HTTP client to it.
 
@@ -26,7 +26,7 @@ FlowForm strips reserved control fields before saving submission data so they ne
 | Field | Purpose |
 | :--- | :--- |
 | `_gotcha`, `_honeypot` | Anti-spam honeypot. If either field is non-empty, FlowForm returns a normal success response without saving the submission or sending notifications. |
-| `_next`, `_redirect` | Redirect URL after an HTML `<form>` submission succeeds. Accepts relative paths (like `/thank-you`), the FlowForm host, or hosts listed in `FLOWFORM_ALLOWED_REDIRECT_HOSTS`. |
+| `_next`, `_redirect` | Redirect target after an HTML `<form>` submission. Use an absolute URL whose host matches the FlowForm instance's `APP_URL` or is listed in `FLOWFORM_ALLOWED_REDIRECT_HOSTS`. A relative path such as `/thank-you` redirects to that path **on the FlowForm host**, not on your site. For most sites, set **Redirect URL** in the form settings instead. |
 | `_token`, `_method` | Stripped automatically so CSRF tokens or HTTP method spoofing fields from frameworks do not leak into submission payloads. |
 
 ---
@@ -46,7 +46,6 @@ FlowForm strips reserved control fields before saving submission data so they ne
   <label for="message">Message</label>
   <textarea id="message" name="message" required></textarea>
 
-  <input type="hidden" name="_next" value="/thank-you" />
   <button type="submit">Send</button>
 </form>
 ```
@@ -128,4 +127,5 @@ FlowForm checks the request's `Origin` header (falling back to `Referer`). If th
 - **403 Forbidden (Origin not allowed):** Your `Origin` or `Referer` header does not match the form's `allowed_domains`. Add your domain (including `localhost` during local development) or leave `allowed_domains` blank to allow all origins.
 - **429 Too Many Requests:** Public endpoints enforce a `10` requests-per-minute-per-IP rate limit (`endpoint-submissions`). Wait 60 seconds before retrying, or avoid rapid automated test bursts from a single IP.
 - **CORS preflight errors in browser dev tools:** Ensure you post to `/api/v1/f/{slug}` or `/f/{slug}` and only send standard headers (`Content-Type`, `Accept`, `X-Requested-With`).
-- **`_next` redirect ignored (returns JSON instead):** By default, FlowForm only redirects to relative paths (`/thank-you`), `APP_URL`, or hosts in `FLOWFORM_ALLOWED_REDIRECT_HOSTS` (`localhost,127.0.0.1` by default). Add your external domain to `FLOWFORM_ALLOWED_REDIRECT_HOSTS` or configure `redirect_url` on the form.
+- **`_next` redirect ignored (returns JSON instead):** FlowForm only redirects `_next` to the instance's own host or to hosts in `FLOWFORM_ALLOWED_REDIRECT_HOSTS` (`localhost,127.0.0.1` by default). Set **Redirect URL** on the form instead (no server config needed), or, on a self-hosted instance, add your domain to `FLOWFORM_ALLOWED_REDIRECT_HOSTS`.
+- **Redirected to a 404 on the FlowForm domain:** a relative `_next` like `/thank-you` resolves against the FlowForm host. Use **Redirect URL** with your full thank-you page URL.

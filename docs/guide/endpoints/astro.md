@@ -14,7 +14,6 @@ For static Astro sites (`output: 'static'`), render a plain `<form>` inside any 
 ---
 <form action="https://forms.example.com/f/contact-us" method="POST">
   <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
-  <input type="hidden" name="_next" value="/thank-you" />
 
   <label>
     Name
@@ -104,7 +103,7 @@ The `_gotcha` field is included in both the static HTML `<form>` and the Astro A
 
 ## Success & Error Handling
 
-- **Static `<form>`:** Redirects to `_next` (`/thank-you`) on `302 Found`, or returns JSON if `_next` is omitted and no `redirect_url` is set on the form.
+- **Static `<form>`:** Redirects (`302 Found`) to the form's **Redirect URL** if one is set; otherwise returns JSON.
 - **Astro Action:** Throws `ActionError` when `!response.ok` and returns `{ id }` on `200 OK`.
 
 ---
@@ -113,4 +112,4 @@ The `_gotcha` field is included in both the static HTML `<form>` and the Astro A
 
 - **403 Forbidden (Origin not allowed):** Add your Astro site's domain to `allowed_domains` in FlowForm form settings when using client-side `<form>` submits.
 - **429 Too Many Requests:** Public endpoints enforce `10` requests per minute per IP. With SSR Astro Actions, server-side requests share your server's IP.
-- **CORS / Redirect issues:** Use a relative `_next` path (such as `/thank-you`) when your redirect target lives on the same origin as the FlowForm URL, or add your Astro domain to `FLOWFORM_ALLOWED_REDIRECT_HOSTS` on the FlowForm server.
+- **CORS / Redirect issues:** Set **Redirect URL** on the form to your Astro thank-you page. A relative `_next` such as `/thank-you` redirects to the FlowForm host, not your site; `_next` with a full URL needs your domain in `FLOWFORM_ALLOWED_REDIRECT_HOSTS` on the FlowForm server.

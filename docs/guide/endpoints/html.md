@@ -1,6 +1,6 @@
 # Plain HTML Form
 
-Point any standard HTML `<form>` directly to FlowForm with zero JavaScript. FlowForm stores the submission, dispatches notifications, and redirects your visitor to a thank-you page.
+Point any standard HTML `<form>` directly to FlowForm with zero JavaScript. FlowForm stores the submission, sends notifications and, if you set a Redirect URL on the form, sends your visitor to your thank-you page.
 
 ---
 
@@ -11,8 +11,6 @@ Point any standard HTML `<form>` directly to FlowForm with zero JavaScript. Flow
   <!-- Honeypot spam trap: keep hidden from human visitors -->
   <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
-  <!-- Optional: redirect after successful submission -->
-  <input type="hidden" name="_next" value="/thank-you" />
 
   <div>
     <label for="name">Name</label>
@@ -45,8 +43,8 @@ The `_gotcha` input sits off-screen (`style="display:none"`) with `tabindex="-1"
 
 ### Redirects (`_next` vs. Form Settings)
 
-1. If `_next` (or `_redirect`) is a safe relative path starting with `/` (such as `/thank-you`) or points to an allowlisted host in `FLOWFORM_ALLOWED_REDIRECT_HOSTS`, FlowForm responds with `302 Found` to that URL.
-2. If `_next` is omitted or not allowlisted, FlowForm falls back to the form's configured `redirect_url`.
+1. **Recommended:** set **Redirect URL** in the form settings to your full thank-you page (for example `https://example.com/thank-you`). FlowForm responds with `302 Found` to it after every successful submission.
+2. Per-page override: add `<input type="hidden" name="_next" value="https://example.com/thank-you" />`. FlowForm only follows `_next` when its host is the instance's own host or is listed in `FLOWFORM_ALLOWED_REDIRECT_HOSTS` (self-hosted setting); otherwise it falls back to the Redirect URL. Don't use a relative path: `/thank-you` redirects to that path on the FlowForm host, not on your site.
 3. If neither is set, FlowForm returns `200 OK` with JSON:
 
 ```json
@@ -67,4 +65,4 @@ In plain HTML submissions, errors (`403`, `404`, `429`) render JSON responses fr
 
 - **403 Forbidden (Origin not allowed):** Browsers send a `Referer` header on native `<form>` submits. If `allowed_domains` is set on the form, include the exact domain serving the HTML page (or `localhost` when testing locally).
 - **429 Too Many Requests:** Rapidly submitting a test form more than `10` times per minute from the same IP triggers FlowForm's rate limiter.
-- **CORS & Redirects:** Native HTML `<form>` submits are normal browser navigations and are not blocked by CORS. However, `_next` URLs pointing to an external domain (such as `https://example.com/thank-you`) will not redirect unless that host is added to `FLOWFORM_ALLOWED_REDIRECT_HOSTS` on your FlowForm instance.
+- **CORS & Redirects:** Native HTML `<form>` submits are normal browser navigations and are not blocked by CORS. For redirects, use the form's **Redirect URL** setting; `_next` to your own domain only works if that host is in `FLOWFORM_ALLOWED_REDIRECT_HOSTS` on the FlowForm instance.

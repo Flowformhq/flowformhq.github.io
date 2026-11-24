@@ -15,7 +15,6 @@ Create a reusable partial at `layouts/partials/contact-form.html`:
   <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
 
   <!-- Optional redirect after submit -->
-  <input type="hidden" name="_next" value="/thank-you" />
 
   <label for="name">Name</label>
   <input id="name" type="text" name="name" required />
@@ -49,7 +48,6 @@ Create a Nunjucks include at `_includes/contact-form.njk`:
   <!-- Honeypot anti-spam trap -->
   <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
 
-  <input type="hidden" name="_next" value="/thank-you" />
 
   <label for="name">Name</label>
   <input id="name" type="text" name="name" required />
@@ -84,7 +82,6 @@ Create a Liquid include at `_includes/contact-form.html`:
   <!-- Honeypot anti-spam trap -->
   <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
 
-  <input type="hidden" name="_next" value="/thank-you" />
 
   <label for="name">Name</label>
   <input id="name" type="text" name="name" required />
@@ -115,7 +112,7 @@ Every partial includes `<input type="text" name="_gotcha" style="display:none" t
 
 ## Success & Error Handling
 
-- **Redirect on success:** Set `_next` to a relative path (like `/thank-you`) or configure **Redirect URL** in the FlowForm form settings.
+- **Redirect on success:** Configure **Redirect URL** in the FlowForm form settings with your full thank-you page URL. Don't use a relative `_next` (it resolves against the FlowForm host).
 - **No-reload UX:** Add a small progressive script using [vanilla JavaScript `fetch`](/guide/endpoints/javascript) if you want inline confirmation instead of a redirect.
 
 ---
