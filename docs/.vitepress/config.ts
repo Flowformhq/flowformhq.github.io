@@ -61,7 +61,16 @@ export default defineConfig({
             { text: 'Framer', link: '/guide/endpoints/framer' },
             { text: 'Carrd', link: '/guide/endpoints/carrd' },
             { text: 'Squarespace & Wix', link: '/guide/endpoints/squarespace-wix' },
-            { text: 'WordPress', link: '/guide/endpoints/wordpress' },
+            {
+              text: 'WordPress',
+              items: [
+                { text: 'Overview & Custom HTML', link: '/guide/endpoints/wordpress/' },
+                { text: 'Elementor Pro', link: '/guide/endpoints/wordpress/elementor' },
+                { text: 'Bricks', link: '/guide/endpoints/wordpress/bricks' },
+                { text: 'Breakdance', link: '/guide/endpoints/wordpress/breakdance' },
+                { text: 'Fluent Forms', link: '/guide/endpoints/wordpress/fluent-forms' },
+              ],
+            },
           ],
         },
         {

@@ -18,7 +18,11 @@ const sourceFiles = [
   'docs/guide/endpoints/framer.md',
   'docs/guide/endpoints/carrd.md',
   'docs/guide/endpoints/squarespace-wix.md',
-  'docs/guide/endpoints/wordpress.md',
+  'docs/guide/endpoints/wordpress/index.md',
+  'docs/guide/endpoints/wordpress/elementor.md',
+  'docs/guide/endpoints/wordpress/bricks.md',
+  'docs/guide/endpoints/wordpress/breakdance.md',
+  'docs/guide/endpoints/wordpress/fluent-forms.md',
 ]
 
 const sections = sourceFiles.map((relPath) => {

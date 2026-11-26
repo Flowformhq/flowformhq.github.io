@@ -123,7 +123,7 @@ FlowForm checks the request's `Origin` header (falling back to `Referer`). If th
 - [Framer](/guide/endpoints/framer) - Native Webhook destination and Embed HTML blocks
 - [Carrd](/guide/endpoints/carrd) - Custom Send to URL forms and Code Embeds
 - [Squarespace & Wix](/guide/endpoints/squarespace-wix) - Code Block and Embed HTML workarounds
-- [WordPress](/guide/endpoints/wordpress) - Classic Custom HTML blocks (no plugin or `wp_mail`) and headless WP
+- [WordPress](/guide/endpoints/wordpress/) - Classic Custom HTML blocks, headless WP, and page-builder webhooks ([Elementor Pro](/guide/endpoints/wordpress/elementor), [Bricks](/guide/endpoints/wordpress/bricks), [Breakdance](/guide/endpoints/wordpress/breakdance), [Fluent Forms](/guide/endpoints/wordpress/fluent-forms))
 
 ---
 

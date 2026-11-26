@@ -331,7 +331,7 @@ FlowForm checks the request's `Origin` header (falling back to `Referer`). If th
 - [Framer](/guide/endpoints/framer) - Native Webhook destination and Embed HTML blocks
 - [Carrd](/guide/endpoints/carrd) - Custom Send to URL forms and Code Embeds
 - [Squarespace & Wix](/guide/endpoints/squarespace-wix) - Code Block and Embed HTML workarounds
-- [WordPress](/guide/endpoints/wordpress) - Classic Custom HTML blocks (no plugin or `wp_mail`) and headless WP
+- [WordPress](/guide/endpoints/wordpress/) - Classic Custom HTML blocks, headless WP, and page-builder webhooks ([Elementor Pro](/guide/endpoints/wordpress/elementor), [Bricks](/guide/endpoints/wordpress/bricks), [Breakdance](/guide/endpoints/wordpress/breakdance), [Fluent Forms](/guide/endpoints/wordpress/fluent-forms))
 
 ---
 
@@ -1700,13 +1700,24 @@ References:
 
 ---
 
-<!-- source: docs/guide/endpoints/wordpress.md -->
+<!-- source: docs/guide/endpoints/wordpress/index.md -->
 
 # WordPress
 
-Connect WordPress sites to FlowForm in minutes without installing a WordPress form plugin or configuring `wp_mail` / SMTP inside WordPress.
+Connect WordPress sites to FlowForm without installing a WordPress form plugin or configuring `wp_mail` / SMTP inside WordPress.
 
 Reference: [WordPress Custom HTML Block](https://wordpress.org/documentation/article/custom-html/).
+
+---
+
+## WordPress Page-Builder Webhooks
+
+If your site already uses a visual page builder or form plugin with webhook actions, send server-side form submissions straight to FlowForm using an Endpoint Server Secret and `_source=wp-<builder>`:
+
+- [Elementor Pro](/guide/endpoints/wordpress/elementor) - Form widget Actions After Submit (`?_source=wp-elementor&_secret=...`)
+- [Bricks](/guide/endpoints/wordpress/bricks) - Form element Webhook action (`X-FlowForm-Secret` header + `?_source=wp-bricks`)
+- [Breakdance](/guide/endpoints/wordpress/breakdance) - Pro Form Builder Webhook action (`X-FlowForm-Secret` header + `?_source=wp-breakdance`)
+- [Fluent Forms](/guide/endpoints/wordpress/fluent-forms) - Pro WebHooks integration (`X-FlowForm-Secret` header + `?_source=wp-fluent-forms`)
 
 ---
 
@@ -1772,3 +1783,346 @@ If you use WordPress only as a headless CMS with a modern front end, wire your f
 
 - **No native Gutenberg block or WordPress plugin yet:** FlowForm currently focuses on standard HTML endpoints and REST API/webhook integrations rather than maintaining a separate WordPress plugin.
 - **Request a Gutenberg block plugin:** Upvote or share your use case in [Flowformhq/flowform#104 - Request: WordPress block plugin (collecting demand)](https://github.com/Flowformhq/flowform/issues/104).
+
+---
+
+<!-- source: docs/guide/endpoints/wordpress/elementor.md -->
+
+# Elementor Pro
+
+Route Elementor Pro Form widget submissions to FlowForm via **Actions After Submit -> Webhook**.
+
+> [!NOTE]
+> Tested by replaying Elementor's documented webhook format; not yet tested on a live Elementor install.
+
+Reference: [Elementor Help Center](https://elementor.com/help/).
+
+---
+
+## Prerequisites
+
+- **Elementor Pro** (the Form widget and Webhook action are not available in Elementor Free).
+- A FlowForm **Endpoint** form (`type: endpoint`), for example slug `contact-us`.
+- An Endpoint **Server Secret** generated on that FlowForm form (**Forms -> Edit -> Generate server secret**), with **Require server secret** enabled in form settings.
+
+---
+
+## Step-by-Step Setup
+
+1. Open your page in Elementor and select the **Form** widget.
+2. In the left panel under **Content -> Form Fields**, give each field a clean **ID** in its **Advanced** tab (`name`, `email`, `message`).
+3. Expand **Actions After Submit**, click inside the **Add Action** input, and select **Webhook**.
+4. Expand the new **Webhook** panel:
+   - **Webhook URL:** Paste your FlowForm endpoint URL with `_source=wp-elementor` and `_secret` query authentication:
+
+```text
+https://forms.example.com/f/contact-us?_source=wp-elementor&_secret=YOUR_ENDPOINT_SECRET
+```
+
+   - **Advanced Data:** Leave **No / Off** (Simple mode, recommended).
+5. Save/Update the page and publish it.
+
+> [!NOTE]
+> **Why `_secret` is in the URL for Elementor:** Elementor Pro's built-in Webhook action does not support custom HTTP request headers (`X-FlowForm-Secret`), so query-parameter authentication (`?_secret=...`) is used instead. Keep access logs restricted on intermediate proxies/web servers because URL query parameters can be recorded in HTTP access logs.
+
+### Simple vs. Advanced Data Mode
+
+- **Simple mode (`Advanced Data: Off`, recommended):** Sends flat form fields using your field IDs/labels in `application/x-www-form-urlencoded` format (for example `name=Alice&email=alice@example.com&message=Hello` alongside `form_id` / `form_name`), which FlowForm stores directly as clean top-level submission keys.
+- **Advanced Data (`On`):** Wraps submissions in nested metadata blocks (page URL, user agent, IP, serialized field structures), which makes submission payloads much noisier unless you specifically inspect WordPress post context.
+
+---
+
+## Endpoint URL & Authentication Format
+
+```text
+POST https://forms.example.com/f/{slug}?_source=wp-elementor&_secret=YOUR_ENDPOINT_SECRET
+```
+
+- `_source=wp-elementor` tags submissions with `meta.source = "wp-elementor"` in FlowForm.
+- A valid secret passes **Require server secret** (`200 OK`, `{"success": true, "message": "Submission received", "id": "<uuid>"}` for JSON callers).
+- Missing secret when required returns `403`: `{"success": false, "error": "Endpoint secret is required."}`.
+- Invalid secret returns `403`: `{"success": false, "error": "Invalid endpoint secret."}`.
+
+---
+
+## How to Test
+
+1. Open the published WordPress page and submit a test entry in the Elementor form (or replay Elementor's Simple form-encoded request with `curl`):
+
+```bash
+curl -sS -X POST "https://forms.example.com/api/v1/f/contact-us?_source=wp-elementor&_secret=YOUR_ENDPOINT_SECRET" \
+  -H "Accept: application/json" \
+  --data-urlencode "name=Elementor Tester" \
+  --data-urlencode "email=elementor@example.com" \
+  --data-urlencode "message=Hello from Elementor Pro"
+```
+
+2. Open FlowForm **Admin Panel -> Submissions** and confirm the new submission contains `name`, `email`, and `message`, with `meta.source` set to `wp-elementor`.
+
+---
+
+## What FlowForm Replaces
+
+- FlowForm stores every entry cleanly outside WordPress, dispatches FlowForm webhooks/chat alerts, and sends notification emails using the FlowForm instance's configured SMTP provider in [Mail Settings / Deployment](/guide/deployment) (self-hosters bring their own mail provider).
+- You do **not** need `wp_mail()`, WP Mail SMTP, or an Elementor submission database plugin for this form (you can also remove Elementor's **Collect Submissions** / **Email** actions if you want zero local WP storage and zero WP mail).
+
+---
+
+## Spam Protection & Limits
+
+- **Server-side spam filtering:** Elementor submits webhooks from your WordPress server rather than the visitor's browser, so browser-side FlowForm CAPTCHA widgets (`cf-turnstile-response` / `h-captcha-response`) cannot execute during the webhook POST. Keep **reCAPTCHA**, **Cloudflare Turnstile**, or Elementor's **Honeypot** field active inside the Elementor form, and enable **Require server secret** on FlowForm so unauthenticated public callers cannot bypass Elementor.
+- **Redirects:** Browser redirects are controlled inside Elementor Pro (**Actions After Submit -> Redirect** using a full destination URL); do not rely on a relative FlowForm `_next` path.
+
+---
+
+<!-- source: docs/guide/endpoints/wordpress/bricks.md -->
+
+# Bricks
+
+Route Bricks Builder Form submissions to FlowForm using Bricks' native **Webhook** form action with the `X-FlowForm-Secret` header.
+
+> [!NOTE]
+> Tested by replaying Bricks' documented webhook format; not yet tested on a live Bricks install.
+
+Reference: [Bricks Academy: Form Element](https://academy.bricksbuilder.io/builder/elements/general/form/).
+
+---
+
+## Prerequisites
+
+- A licensed **Bricks** WordPress theme installation (Bricks has no free tier).
+- A FlowForm **Endpoint** form (`type: endpoint`), for example slug `contact-us`.
+- An Endpoint **Server Secret** generated on that FlowForm form (**Forms -> Edit -> Generate server secret**), with **Require server secret** enabled in form settings.
+
+---
+
+## Step-by-Step Setup
+
+1. Edit your page in Bricks and select your **Form** element.
+2. In **Content -> Fields**, confirm each field has a meaningful `ID` / name (`name`, `email`, `message`).
+3. Open **Content -> Actions**, add **Webhook**, and open the **Webhook** action settings:
+   - **Endpoint URL:** `https://forms.example.com/api/v1/f/contact-us?_source=wp-bricks` (or `/f/contact-us?_source=wp-bricks`)
+   - **Data Format:** `JSON` (recommended) or `Form data (x-www-form-urlencoded)`.
+   - **Headers (JSON):**
+
+```json
+{
+  "X-FlowForm-Secret": "YOUR_ENDPOINT_SECRET",
+  "Accept": "application/json"
+}
+```
+
+   - **Data Payload:** Leave empty to transmit all form fields automatically, or map explicit keys with Bricks dynamic tags (`{{field_id}}`).
+4. Do **not** manually add a `Content-Type` header inside **Headers**; Bricks sets `Content-Type` automatically from **Data Format**, and duplicating it can trigger `415 Unsupported Media Type` errors on strict proxies.
+5. Save and publish.
+
+> [!TIP]
+> Prefer `X-FlowForm-Secret` in Bricks' JSON **Headers** box over `?_secret=` in the URL so the secret stays out of web server access logs.
+
+---
+
+## Endpoint URL & Authentication Format
+
+```text
+POST https://forms.example.com/api/v1/f/{slug}?_source=wp-bricks
+Header: X-FlowForm-Secret: YOUR_ENDPOINT_SECRET
+```
+
+- `_source=wp-bricks` tags submissions with `meta.source = "wp-bricks"` in FlowForm.
+- If Bricks custom headers are omitted in an older template, `?_source=wp-bricks&_secret=YOUR_ENDPOINT_SECRET` also works, noting query parameters can appear in HTTP server logs.
+- Missing or wrong secret when **Require server secret** is enabled returns `403` (`"Endpoint secret is required."` or `"Invalid endpoint secret."`).
+
+---
+
+## How to Test
+
+Replay Bricks' JSON webhook payload directly against FlowForm:
+
+```bash
+curl -sS -X POST "https://forms.example.com/api/v1/f/contact-us?_source=wp-bricks" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "X-FlowForm-Secret: YOUR_ENDPOINT_SECRET" \
+  -d '{"name":"Bricks Tester","email":"bricks@example.com","message":"Hello from Bricks"}'
+```
+
+Verify FlowForm returns `200 OK` with `{"success":true,"message":"Submission received","id":"<uuid>"}` and shows `meta.source = "wp-bricks"` in **Admin Panel -> Submissions**.
+
+---
+
+## What FlowForm Replaces
+
+- Replaces WordPress database entry storage and WordPress outbound mail for this form. FlowForm sends email notifications through the instance's configured SMTP provider in [Mail Settings / Deployment](/guide/deployment) (self-hosters bring their own mail provider).
+
+---
+
+## Spam Protection & Limits
+
+- **Server-side spam filtering:** Bricks fires its Webhook action from your WordPress backend, bypassing browser-side FlowForm CAPTCHA validation. Keep Bricks' built-in honeypot / Turnstile / reCAPTCHA protection enabled on the Bricks form **and** keep **Require server secret** enabled in FlowForm so only your WordPress site can submit.
+- **Redirects:** Configure post-submit messages or full-URL redirects directly in Bricks; do not use a relative FlowForm `_next` path.
+
+---
+
+<!-- source: docs/guide/endpoints/wordpress/breakdance.md -->
+
+# Breakdance
+
+Route Breakdance Form Builder submissions to FlowForm using Breakdance's **Webhook** action after submission.
+
+> [!NOTE]
+> Tested by replaying Breakdance's documented webhook format; not yet tested on a live Breakdance install.
+
+Reference: [Breakdance Documentation](https://breakdance.com/documentation/).
+
+---
+
+## Prerequisites
+
+- **Breakdance Pro** (Form Builder webhook actions and custom HTTP headers require the Pro license).
+- A FlowForm **Endpoint** form (`type: endpoint`), for example slug `contact-us`.
+- An Endpoint **Server Secret** generated on that FlowForm form (**Forms -> Edit -> Generate server secret**), with **Require server secret** enabled in form settings.
+
+---
+
+## Step-by-Step Setup
+
+1. Edit your page in Breakdance and select the **Form Builder** element.
+2. Under **Content -> Form**, ensure every field has a clean **Field ID / Name** (`name`, `email`, `message`).
+3. Open **Content -> Actions -> Actions After Submission** and add **Webhook**.
+4. Configure the **Webhook** action:
+   - **Webhook URL:** `https://forms.example.com/api/v1/f/contact-us?_source=wp-breakdance` (or `/f/contact-us?_source=wp-breakdance`)
+   - **Headers:** Add a custom header row:
+     - Name: `X-FlowForm-Secret`
+     - Value: `YOUR_ENDPOINT_SECRET`
+   - **Field Map:** Map your Breakdance fields (`name`, `email`, `message`) to matching JSON keys.
+5. Save the page and publish.
+
+> [!NOTE]
+> If your Breakdance plan or setup omits custom headers in the Webhook action UI, use the query parameter fallback instead (`https://forms.example.com/api/v1/f/contact-us?_source=wp-breakdance&_secret=YOUR_ENDPOINT_SECRET`), keeping in mind that query-string secrets can be recorded in web server access logs.
+
+---
+
+## Endpoint URL & Authentication Format
+
+```text
+POST https://forms.example.com/api/v1/f/{slug}?_source=wp-breakdance
+Header: X-FlowForm-Secret: YOUR_ENDPOINT_SECRET
+```
+
+- `_source=wp-breakdance` sets `meta.source = "wp-breakdance"` on saved submissions.
+- Missing secret when **Require server secret** is enabled returns `403`: `{"success": false, "error": "Endpoint secret is required."}`.
+- Invalid secret returns `403`: `{"success": false, "error": "Invalid endpoint secret."}`.
+
+---
+
+## How to Test
+
+Replay Breakdance's mapped JSON POST request with `curl`:
+
+```bash
+curl -sS -X POST "https://forms.example.com/api/v1/f/contact-us?_source=wp-breakdance" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "X-FlowForm-Secret: YOUR_ENDPOINT_SECRET" \
+  -d '{"name":"Breakdance Tester","email":"breakdance@example.com","message":"Hello from Breakdance"}'
+```
+
+Verify FlowForm returns `200 OK` (`{"success":true,"message":"Submission received","id":"<uuid>"}`) and records `meta.source = "wp-breakdance"`.
+
+---
+
+## What FlowForm Replaces
+
+- Replaces WordPress `wp_mail()` / SMTP plugins and Breakdance submission storage for this form. Notification emails are sent by FlowForm via the instance's configured SMTP provider in [Mail Settings / Deployment](/guide/deployment) (self-hosters configure their own mail provider).
+
+---
+
+## Spam Protection & Limits
+
+- **Server-side spam filtering:** Breakdance dispatches webhooks from WordPress PHP after the visitor submits, so FlowForm's frontend CAPTCHA widget cannot validate the browser session. Keep Breakdance's built-in Honeypot / Turnstile / reCAPTCHA enabled on the form, and enable **Require server secret** on the FlowForm form so direct unauthenticated requests are blocked.
+- **Redirects:** Configure success messages or full redirect URLs inside Breakdance's Form Builder settings; never pass a relative FlowForm `_next` path.
+
+---
+
+<!-- source: docs/guide/endpoints/wordpress/fluent-forms.md -->
+
+# Fluent Forms
+
+Route Fluent Forms submissions directly to FlowForm using Fluent Forms' built-in **WebHooks** feed with the `X-FlowForm-Secret` request header.
+
+> [!NOTE]
+> Tested by replaying Fluent Forms Pro's documented webhook format; not yet tested on a live Fluent Forms Pro install (`WebHooks` feed module requires **Fluent Forms Pro**; free users need a third-party webhook bridge plugin).
+
+Reference: [Fluent Forms Documentation](https://docs.fluentforms.com/).
+
+---
+
+## Prerequisites
+
+- **Fluent Forms Pro** (the native **WebHooks** integration module requires the Pro license; it is not included in the free Fluent Forms plugin without a third-party bridge plugin such as Bit Integrations or WP Webhooks).
+- A FlowForm **Endpoint** form (`type: endpoint`), for example slug `contact-us`.
+- An Endpoint **Server Secret** generated on that FlowForm form (**Forms -> Edit -> Generate server secret**), with **Require server secret** enabled in form settings.
+
+---
+
+## Step-by-Step Setup
+
+1. In the WordPress admin dashboard, go to **Fluent Forms -> Integrations** (Pro), find **WebHooks**, and toggle it **On**.
+2. Open **Fluent Forms -> Forms**, edit your form, and note your field **Name Attributes** (for example `names`, `email`, `message`).
+3. Go to **Settings & Integrations -> WebHook** on that form and click **+ Add New**.
+4. Configure the feed:
+   - **Name:** `FlowForm Contact`
+   - **Request URL:** `https://forms.example.com/api/v1/f/contact-us?_source=wp-fluent-forms` (or `/f/contact-us?_source=wp-fluent-forms`)
+   - **Request Method:** `POST`
+   - **Request Format:** `JSON` (recommended) or `FORM`
+   - **Request Header:** Select **With Headers** and add:
+     - Header Key: `X-FlowForm-Secret`
+     - Header Value: `YOUR_ENDPOINT_SECRET`
+   - **Request Body:** Select **All Fields** or map **Selected Fields** cleanly (`name`, `email`, `message`).
+5. Click **Save Feed**.
+
+> [!TIP]
+> Fluent Forms Pro supports custom **Request Headers**, so send `X-FlowForm-Secret` as a header rather than `?_secret=` in the URL. If you use a third-party bridge plugin that cannot add custom headers, fall back to `?_source=wp-fluent-forms&_secret=YOUR_ENDPOINT_SECRET` and keep web server access logs restricted since query strings may be logged.
+
+---
+
+## Endpoint URL & Authentication Format
+
+```text
+POST https://forms.example.com/api/v1/f/{slug}?_source=wp-fluent-forms
+Header: X-FlowForm-Secret: YOUR_ENDPOINT_SECRET
+```
+
+- `_source=wp-fluent-forms` records `meta.source = "wp-fluent-forms"` in FlowForm.
+- Without a valid `X-FlowForm-Secret` (or `_secret`) when **Require server secret** is enabled, FlowForm rejects the request with `403`:
+  - `{"success": false, "error": "Endpoint secret is required."}` (header/query omitted)
+  - `{"success": false, "error": "Invalid endpoint secret."}` (secret mismatch)
+
+---
+
+## How to Test
+
+Submit a test entry in Fluent Forms (or replay Fluent Forms' `JSON` webhook POST with `curl`):
+
+```bash
+curl -sS -X POST "https://forms.example.com/api/v1/f/contact-us?_source=wp-fluent-forms" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "X-FlowForm-Secret: YOUR_ENDPOINT_SECRET" \
+  -d '{"name":"Fluent Tester","email":"fluent@example.com","message":"Hello from Fluent Forms"}'
+```
+
+Verify FlowForm returns `200 OK` (`{"success":true,"message":"Submission received","id":"<uuid>"}`) and records `meta.source = "wp-fluent-forms"`.
+
+---
+
+## What FlowForm Replaces
+
+- Replaces WordPress email notifications (`wp_mail()` / SMTP plugins) for this form. FlowForm sends notifications via the instance's configured SMTP provider in [Mail Settings / Deployment](/guide/deployment) (self-hosters bring their own mail provider) and keeps centralized entries/webhooks inside FlowForm.
+
+---
+
+## Spam Protection & Limits
+
+- **Server-side spam filtering:** Fluent Forms sends webhooks server-to-server after saving/processing on WordPress, bypassing FlowForm's browser-side CAPTCHA check. Keep Fluent Forms' built-in Honeypot / Cloudflare Turnstile / Akismet / reCAPTCHA protection enabled on the WordPress form, **and** enable **Require server secret** on the FlowForm form.
+- **Redirects:** Configure confirmations or full redirect URLs inside Fluent Forms (**Settings & Integrations -> Confirmation Settings**); do not use a relative FlowForm `_next` path.

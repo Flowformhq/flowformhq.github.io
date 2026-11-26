@@ -1,8 +1,19 @@
 # WordPress
 
-Connect WordPress sites to FlowForm in minutes without installing a WordPress form plugin or configuring `wp_mail` / SMTP inside WordPress.
+Connect WordPress sites to FlowForm without installing a WordPress form plugin or configuring `wp_mail` / SMTP inside WordPress.
 
 Reference: [WordPress Custom HTML Block](https://wordpress.org/documentation/article/custom-html/).
+
+---
+
+## WordPress Page-Builder Webhooks
+
+If your site already uses a visual page builder or form plugin with webhook actions, send server-side form submissions straight to FlowForm using an Endpoint Server Secret and `_source=wp-<builder>`:
+
+- [Elementor Pro](/guide/endpoints/wordpress/elementor) - Form widget Actions After Submit (`?_source=wp-elementor&_secret=...`)
+- [Bricks](/guide/endpoints/wordpress/bricks) - Form element Webhook action (`X-FlowForm-Secret` header + `?_source=wp-bricks`)
+- [Breakdance](/guide/endpoints/wordpress/breakdance) - Pro Form Builder Webhook action (`X-FlowForm-Secret` header + `?_source=wp-breakdance`)
+- [Fluent Forms](/guide/endpoints/wordpress/fluent-forms) - Pro WebHooks integration (`X-FlowForm-Secret` header + `?_source=wp-fluent-forms`)
 
 ---
 
