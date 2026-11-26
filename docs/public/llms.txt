@@ -23,7 +23,11 @@ FlowForm receives HTML `<form>` posts (`POST /f/{slug}`) and JSON/multipart API 
 - [Framer](https://docs.flowformhq.com/guide/endpoints/framer): Native Send To -> Webhook and HTML Embed
 - [Carrd](https://docs.flowformhq.com/guide/endpoints/carrd): Custom Send to URL and Embed code
 - [Squarespace & Wix](https://docs.flowformhq.com/guide/endpoints/squarespace-wix): Code Block and Embed HTML snippets
-- [WordPress](https://docs.flowformhq.com/guide/endpoints/wordpress): Custom HTML block, no plugin required
+- [WordPress Overview](https://docs.flowformhq.com/guide/endpoints/wordpress/): Custom HTML block, headless WP, and page-builder webhooks
+- [WordPress: Elementor Pro](https://docs.flowformhq.com/guide/endpoints/wordpress/elementor): Actions After Submit webhook (`?_source=wp-elementor&_secret=...`)
+- [WordPress: Bricks](https://docs.flowformhq.com/guide/endpoints/wordpress/bricks): Form Webhook action with `X-FlowForm-Secret` header and `?_source=wp-bricks`
+- [WordPress: Breakdance](https://docs.flowformhq.com/guide/endpoints/wordpress/breakdance): Pro Form Webhook action with `X-FlowForm-Secret` header and `?_source=wp-breakdance`
+- [WordPress: Fluent Forms](https://docs.flowformhq.com/guide/endpoints/wordpress/fluent-forms): Pro WebHooks feed with `X-FlowForm-Secret` header and `?_source=wp-fluent-forms`
 
 ## API, MCP & Security
 
