@@ -14,6 +14,11 @@ const sourceFiles = [
   'docs/guide/endpoints/sveltekit.md',
   'docs/guide/endpoints/static-site-generators.md',
   'docs/guide/endpoints/mobile-and-servers.md',
+  'docs/guide/endpoints/webflow.md',
+  'docs/guide/endpoints/framer.md',
+  'docs/guide/endpoints/carrd.md',
+  'docs/guide/endpoints/squarespace-wix.md',
+  'docs/guide/endpoints/wordpress.md',
 ]
 
 const sections = sourceFiles.map((relPath) => {
