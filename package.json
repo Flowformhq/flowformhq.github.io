@@ -5,7 +5,8 @@
   "description": "FlowForm documentation",
   "scripts": {
     "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:llms": "node scripts/generate-llms-full.mjs",
+    "docs:build": "npm run docs:llms && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "repository": {

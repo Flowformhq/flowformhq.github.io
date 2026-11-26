@@ -1,0 +1,34 @@
+# FlowForm
+
+> Open-source, self-hostable headless form backend and multi-step workflow API built on Laravel.
+
+FlowForm receives HTML `<form>` posts (`POST /f/{slug}`) and JSON/multipart API posts (`POST /api/v1/f/{slug}`) without custom backend code, with built-in honeypot filtering (`_gotcha`), Turnstile/hCaptcha verification, file uploads, optional AES-256 field-level encryption, HMAC-SHA256 webhooks, scoped Sanctum API tokens, and an authenticated MCP server (`POST /api/v1/mcp`). Self-hosted instances bring their own SMTP provider for email notifications.
+
+## AI Agent & Endpoint Quickstarts
+
+- [AI Coding Agents Quickstart](https://docs.flowformhq.com/guide/ai-agents): 3-step contact form setup, exact JSON response contract, honeypot rules, and authenticated MCP tools (`POST /api/v1/mcp`)
+- [Endpoints Overview](https://docs.flowformhq.com/guide/endpoints/): `/f/{slug}` vs `/api/v1/f/{slug}`, reserved fields, response codes, CORS, and Allowed Domains
+
+## Stack Guides
+
+- [HTML Forms](https://docs.flowformhq.com/guide/endpoints/html): Plain HTML `<form>` endpoints, `_gotcha` honeypot, and redirect rules
+- [JavaScript (fetch & FormData)](https://docs.flowformhq.com/guide/endpoints/javascript): Browser `fetch` JSON and `FormData` file uploads
+- [Next.js](https://docs.flowformhq.com/guide/endpoints/nextjs): App Router Server Actions and Client Components
+- [Astro](https://docs.flowformhq.com/guide/endpoints/astro): Static `<form>` and SSR Astro Actions
+- [Nuxt](https://docs.flowformhq.com/guide/endpoints/nuxt): Vue `$fetch` form component
+- [SvelteKit](https://docs.flowformhq.com/guide/endpoints/sveltekit): Server-side form actions with progressive enhancement
+- [Static Site Generators](https://docs.flowformhq.com/guide/endpoints/static-site-generators): Hugo, Eleventy, and Jekyll snippets
+- [Mobile & Server Clients](https://docs.flowformhq.com/guide/endpoints/mobile-and-servers): curl, React Native, Flutter, Python, and PHP/Laravel clients
+
+## API, MCP & Security
+
+- [API Overview](https://docs.flowformhq.com/api/overview): Sanctum bearer authentication, pagination, and error format
+- [Forms API](https://docs.flowformhq.com/api/forms): Headless endpoint routes and schema-driven form endpoints
+- [Submissions API](https://docs.flowformhq.com/api/submissions): Draft creation, step navigation, and field value persistence
+- [Webhooks & HMAC Verification](https://docs.flowformhq.com/guide/webhooks): `X-FlowForm-Signature` verification and retry schedule
+- [Field-Level Encryption](https://docs.flowformhq.com/guide/security-encryption): AES-256 at-rest encryption and decryption audit logging
+- [Self-Hosting Guide](https://docs.flowformhq.com/guide/deployment): Docker Compose and Laravel deployment
+
+## Full Markdown Bundle
+
+- [llms-full.txt](https://docs.flowformhq.com/llms-full.txt): Concatenated plain-markdown content of the AI Coding Agents and Stack Endpoint guides

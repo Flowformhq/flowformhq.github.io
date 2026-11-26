@@ -70,6 +70,7 @@ export default defineConfig({
         {
           text: 'Integration',
           items: [
+            { text: 'AI Coding Agents', link: '/guide/ai-agents' },
             { text: 'Starter Kits Overview', link: '/guide/starter-kits' },
             { text: 'React Starter Kit', link: '/guide/react-starter-kit' },
             { text: 'Vue Starter Kit', link: '/guide/vue-starter-kit' },
