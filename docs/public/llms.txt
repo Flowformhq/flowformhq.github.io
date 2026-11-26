@@ -19,6 +19,11 @@ FlowForm receives HTML `<form>` posts (`POST /f/{slug}`) and JSON/multipart API 
 - [SvelteKit](https://docs.flowformhq.com/guide/endpoints/sveltekit): Server-side form actions with progressive enhancement
 - [Static Site Generators](https://docs.flowformhq.com/guide/endpoints/static-site-generators): Hugo, Eleventy, and Jekyll snippets
 - [Mobile & Server Clients](https://docs.flowformhq.com/guide/endpoints/mobile-and-servers): curl, React Native, Flutter, Python, and PHP/Laravel clients
+- [Webflow](https://docs.flowformhq.com/guide/endpoints/webflow): Form Block custom action and Embed `fetch`
+- [Framer](https://docs.flowformhq.com/guide/endpoints/framer): Native Send To -> Webhook and HTML Embed
+- [Carrd](https://docs.flowformhq.com/guide/endpoints/carrd): Custom Send to URL and Embed code
+- [Squarespace & Wix](https://docs.flowformhq.com/guide/endpoints/squarespace-wix): Code Block and Embed HTML snippets
+- [WordPress](https://docs.flowformhq.com/guide/endpoints/wordpress): Custom HTML block, no plugin required
 
 ## API, MCP & Security
 

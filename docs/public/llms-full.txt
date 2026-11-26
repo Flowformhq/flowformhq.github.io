@@ -1398,3 +1398,377 @@ Always check the HTTP status code before reading `id`:
 - **403 Forbidden (Origin not allowed):** Native mobile apps and server HTTP clients typically omit `Origin` and `Referer`, which passes `allowed_domains`. If your client manually sets a `Referer` or `Origin` header, ensure that domain is in `allowed_domains`.
 - **429 Too Many Requests:** Background batch jobs or shared backend proxies sending more than `10` requests per minute from a single IP will be throttled. Space out automated jobs or submit with backoff.
 - **CORS:** Native mobile runtimes (React Native, Flutter) and server clients (`curl`, Python, PHP) do not enforce browser CORS policies. If running React Native Web or Flutter Web in a browser, use standard JSON headers without cookies.
+
+---
+
+<!-- source: docs/guide/endpoints/webflow.md -->
+
+# Webflow
+
+Point any native Webflow Form Block directly at a FlowForm endpoint without custom code, or embed an HTML form inside an Embed element.
+
+Reference: [Webflow Help Center: Custom form actions](https://help.webflow.com/hc/en-us/articles/33961334431123-Custom-form-actions).
+
+---
+
+## Option 1 · Native Webflow Form Block (Custom Action)
+
+Webflow's native Form Block lets you override the `Action` URL and HTTP `Method` directly in the Designer:
+
+1. Create an **Endpoint** form in FlowForm (for example with slug `contact-us`) and note its URL: `https://forms.example.com/f/contact-us`.
+2. In FlowForm form settings, set **Redirect URL** to your Webflow thank-you page (for example `https://yoursite.com/thank-you`), and optionally add your Webflow domain under **Allowed Domains**.
+3. Open your project in the **Webflow Designer** and select your **Form Block** on the canvas.
+4. Open **Element Settings** (the gear icon on the right sidebar).
+5. Under **Form Settings -> Send to**, remove Webflow's default submission destination if present, click **+**, and add **Custom action**.
+6. Set:
+   - **Action:** `https://forms.example.com/f/contact-us`
+   - **Method:** `POST`
+7. Give each Webflow input a clean **Name** attribute (`name`, `email`, `message`).
+8. Add a hidden honeypot field (`Embed` element inside the Form Block) so spam bots are filtered silently:
+
+```html
+<input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+```
+
+9. **Publish** your Webflow site and test on the published domain (Webflow Designer preview does not execute external `POST` actions).
+
+---
+
+## Option 2 · Code Embed (Keep User on Page with JSON Fetch)
+
+Because a standard Webflow **Custom action** performs a full-page browser `POST` and redirects away from the page, Webflow's built-in Success/Error state boxes do not trigger automatically. If you want an inline submit state without a reload, use an **Embed** element with JavaScript `fetch` posting to `/api/v1/f/{slug}`:
+
+```html
+<form id="webflow-flowform">
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+  <input type="text" name="name" placeholder="Name" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <textarea name="message" placeholder="Message" required></textarea>
+  <button type="submit">Send</button>
+  <p id="webflow-flowform-status" aria-live="polite"></p>
+</form>
+
+<script>
+  const form = document.getElementById('webflow-flowform');
+  const statusEl = document.getElementById('webflow-flowform-status');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const res = await fetch('https://forms.example.com/api/v1/f/contact-us', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(Object.fromEntries(new FormData(form).entries())),
+    });
+
+    const body = await res.json();
+    if (res.ok && body.success) {
+      statusEl.textContent = 'Thank you. Your message has been received.';
+      form.reset();
+    } else {
+      statusEl.textContent = body.error || 'Submission failed.';
+    }
+  });
+</script>
+```
+
+---
+
+## Plan & Feature Limits to Note
+
+- **Webflow Custom Action Availability & Hosting:** Custom form actions bypass Webflow's native form storage and email notifications (submissions go straight to FlowForm instead of your Webflow dashboard). On Starter/unpaid sites, Webflow caps lifetime form submissions for Webflow-hosted handling and gates **Embed** elements and code export behind paid Site or Workspace plans. Check your Webflow plan tier before adding custom Embed code blocks.
+- **Native Webflow reCAPTCHA:** Webflow's built-in reCAPTCHA does not validate forms using a Custom Action. Use FlowForm's `_gotcha` honeypot and Turnstile/hCaptcha verification configured in FlowForm instead.
+- **Redirect URLs:** Set **Redirect URL** in FlowForm form settings rather than adding a relative `_next` path like `/thank-you` (a relative path resolves on the FlowForm host). If you pass `_next` explicitly in an Embed form, use a full `https://` URL whose domain is in the form's **Allowed Domains**.
+- **Mail Delivery:** Self-hosted FlowForm instances deliver notification emails through the SMTP provider you configure in FlowForm Admin -> Mail Settings.
+
+---
+
+<!-- source: docs/guide/endpoints/framer.md -->
+
+# Framer
+
+Send submissions from a Framer site to FlowForm using Framer's native **Webhook** destination or a custom HTML **Embed** component.
+
+Reference: [Framer Help Center](https://www.framer.com/help/) and [Framer Forms Guide](https://www.framer.com/academy/lessons/forms).
+
+---
+
+## Option 1 · Native Framer Form (Send to Webhook)
+
+Framer's built-in **Form** component can post JSON submissions straight to any `https://` URL without writing HTML or JavaScript:
+
+1. Create an **Endpoint** form in FlowForm and copy its JSON endpoint URL: `https://forms.example.com/api/v1/f/contact-us` (note Framer requires `https://` URLs).
+2. In Framer, select your **Form** component on the canvas.
+3. In the right-hand properties panel under **Send To**, click **Add...** and choose **Webhook**.
+4. Paste `https://forms.example.com/api/v1/f/contact-us`.
+5. Configure your Framer form inputs with clear field names (`name`, `email`, `message`) and choose either inline **Success/Error** states or a redirect URL directly inside Framer's form settings.
+6. FlowForm returns `200 OK` with `{"success": true, "message": "Submission received", "id": "<uuid>"}`, which satisfies Framer's `2xx` delivery requirement so Framer does not retry unnecessarily.
+
+> [!TIP]
+> Framer's webhook is sent from Framer's servers, not the visitor's browser, so origin checks don't apply to it. To make sure only Framer can post to this form, generate a **server secret** in the FlowForm form settings, append it to the webhook URL (`https://forms.example.com/api/v1/f/contact-us?_secret=YOUR_SECRET&_source=framer`), and turn on **Require server secret**. Only do this when the form is used exclusively by the native webhook: a browser embed (Option 2) can't keep a secret.
+
+---
+
+## Option 2 · Custom HTML Form via Framer Embed
+
+When you want full control over `_gotcha` honeypots, file uploads (`multipart/form-data`), or redirect targets:
+
+1. Drag an **Embed** component (`Insert -> Utility -> Embed`) onto your Framer page and switch **Type** to **HTML**.
+2. Paste a standard FlowForm HTML `<form>` or JS `fetch` snippet:
+
+```html
+<form action="https://forms.example.com/f/contact-us" method="POST">
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+  <label>
+    Name
+    <input type="text" name="name" required />
+  </label>
+
+  <label>
+    Email
+    <input type="email" name="email" required />
+  </label>
+
+  <label>
+    Message
+    <textarea name="message" required></textarea>
+  </label>
+
+  <button type="submit">Send</button>
+</form>
+```
+
+---
+
+## Important Notes
+
+- **HTTPS Required:** Framer restricts native **Send To -> Webhook** URLs to `https://` endpoints. Use `POST /api/v1/f/{slug}` for Framer native webhooks so FlowForm always returns JSON (`200 OK`) rather than an HTML `302` redirect (Framer does not follow `3xx` redirects on webhooks).
+- **Redirect URLs:** For Option 2 HTML `<form>` embeds, set **Redirect URL** in FlowForm form settings (for example `https://yourframer.site/thanks`), or pass a full URL in `_next` whose domain is listed in **Allowed Domains**. Never use a relative `_next` path like `/thanks`.
+- **Allowed Domains:** Add both your custom domain and any `.framer.website` staging domain to FlowForm **Allowed Domains** if you lock submissions down by origin.
+
+---
+
+<!-- source: docs/guide/endpoints/carrd.md -->
+
+# Carrd
+
+Connect a Carrd landing page to FlowForm using Carrd's custom **Send to URL** form action or a raw **Embed** block.
+
+References: [Carrd Custom Forms](https://carrd.co/docs/forms/custom) and [Carrd Embed Elements](https://carrd.co/docs/building/embedding-custom-code).
+
+---
+
+## Option 1 · Carrd Custom Form (`Send to URL`, Pro Plus+)
+
+Carrd Pro Plus plans can point a native Carrd **Form** element directly at an external endpoint:
+
+1. Create an **Endpoint** form in FlowForm and configure its **Redirect URL** in form settings (for example `https://yoursite.carrd.co/#thanks` or your custom domain thank-you page).
+2. In Carrd, click **Add Element (+)** -> **Form**.
+3. Set **Type** to **Custom**, then choose **Send to URL**.
+4. Set:
+   - **URL:**
+     - Choose `https://forms.example.com/api/v1/f/contact-us` if using **Method: AJAX** (JSON / `FormData`).
+     - Choose `https://forms.example.com/f/contact-us` if using **Method: POST**.
+   - **Method:** **AJAX** (for Carrd's built-in on-submission message without leaving the page) or **POST**.
+5. Under the **Fields** tab, add inputs named `name`, `email`, and `message`.
+
+---
+
+## Option 2 · Embed Code Block (Pro Standard+)
+
+If you prefer pasting a plain HTML form (with a `_gotcha` honeypot field):
+
+1. Click **Add Element (+)** -> **Embed**.
+2. Set **Type** to **Code** and **Style** to **Inline**.
+3. Paste:
+
+```html
+<form action="https://forms.example.com/f/contact-us" method="POST">
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+  <input type="text" name="name" placeholder="Name" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <textarea name="message" placeholder="Message" required></textarea>
+
+  <button type="submit">Send Message</button>
+</form>
+```
+
+4. Publish the Carrd site to test (Carrd does not execute custom `<form>` embeds inside the editor canvas).
+
+---
+
+## Plan & Configuration Notes
+
+- **Carrd Plan Limits:** Both native **Custom -> Send to URL** forms (Pro Plus or higher) and **Embed** elements (Pro Standard or higher) require a paid Carrd Pro plan. Free Carrd sites cannot embed custom HTML forms or post to external endpoints.
+- **Redirects:** Configure **Redirect URL** in FlowForm form settings or send a full `https://` URL in `_next` listed in the form's **Allowed Domains**. Never use a relative `_next` path like `/thanks`.
+
+---
+
+<!-- source: docs/guide/endpoints/squarespace-wix.md -->
+
+# Squarespace & Wix
+
+Both **Squarespace** and **Wix** restrict their built-in form blocks to internal platform storage and built-in integrations, so neither platform lets you swap the `action` URL of a native form block directly. Instead, add a **Code Block** (Squarespace) or **Embed HTML** element (Wix) containing a FlowForm `<form>` or JS `fetch` snippet.
+
+References:
+- [Squarespace Help: Add custom code to a page with code blocks](https://support.squarespace.com/hc/en-us/articles/206543167-Add-custom-code-to-a-page-with-code-blocks)
+- [Wix Support: Embedding a Site or a Widget](https://support.wix.com/en/article/wix-editor-embedding-a-site-or-a-widget)
+
+---
+
+## Squarespace (Code Block)
+
+1. In Squarespace, edit your page, click **Add Block**, and select **Code** (custom form markup in Code Blocks requires a Squarespace **Business** or **Commerce** plan or higher).
+2. Ensure **Display Source** is toggled **off** and set mode to **HTML**.
+3. Paste the FlowForm form snippet:
+
+```html
+<form id="sqsp-flowform" class="flowform-contact">
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+  <label>
+    Name
+    <input type="text" name="name" required />
+  </label>
+
+  <label>
+    Email
+    <input type="email" name="email" required />
+  </label>
+
+  <label>
+    Message
+    <textarea name="message" required></textarea>
+  </label>
+
+  <button type="submit">Send</button>
+  <p id="sqsp-flowform-status" aria-live="polite"></p>
+</form>
+
+<script>
+  (function () {
+    const form = document.getElementById('sqsp-flowform');
+    const status = document.getElementById('sqsp-flowform-status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('https://forms.example.com/api/v1/f/contact-us', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(new FormData(form).entries())),
+      });
+
+      const body = await res.json();
+      if (res.ok && body.success) {
+        status.textContent = 'Message sent. Thank you.';
+        form.reset();
+      } else {
+        status.textContent = body.error || 'Unable to submit form.';
+      }
+    });
+  })();
+</script>
+```
+
+4. Test while logged out (or in an Incognito/Private window), because Squarespace can suppress custom scripts inside the authenticated editor preview.
+
+---
+
+## Wix (Embed HTML Element)
+
+> [!WARNING]
+> Wix wraps **Embed HTML** widgets inside a sandboxed `<iframe>`. Avoid relying on FlowForm `302` redirects inside a Wix embed unless your `<form>` explicitly sets `target="_top"` and uses a **Redirect URL** (or full URL in `_next` whose domain is in **Allowed Domains**). In most cases, submitting inline via JavaScript `fetch` to `POST /api/v1/f/{slug}` is much more reliable inside Wix's iframe container.
+
+1. In the Wix Editor, click **Add Elements (+)** -> **Embed Code** -> **Embed HTML**.
+2. Choose **Code** and paste the inline JSON `fetch` HTML snippet above (using `https://` for your FlowForm URL because Wix blocks non-HTTPS endpoints).
+3. Click **Apply** and resize the HTML element container so the submit button and status message fit without scrollbars.
+
+---
+
+## Limits & Domain Settings
+
+- **Native Form Blocks Cannot Target External URLs Directly:** Neither Squarespace's native Form Block nor Wix's native Wix Forms offers a configurable external HTTP `POST` `action` URL without an automation bridge (such as Zapier, Make, or FlowForm webhooks/REST subscriptions). Use the Code Block / Embed HTML snippets above when you want submissions to go directly from the browser to FlowForm.
+- **CORS & Allowed Domains:** If you enable **Allowed Domains** on your FlowForm form, remember to add your published domain. For Wix embeds, note that Wix HTML widgets run in a generated sandboxed origin (leave **Allowed Domains** empty or verify your iframe `Origin` header in browser DevTools).
+- **Redirect URLs:** Never use a relative `_next` path like `/thank-you`. Configure **Redirect URL** in FlowForm form settings or use an absolute `https://` URL in `_next` matching **Allowed Domains**.
+
+---
+
+<!-- source: docs/guide/endpoints/wordpress.md -->
+
+# WordPress
+
+Connect WordPress sites to FlowForm in minutes without installing a WordPress form plugin or configuring `wp_mail` / SMTP inside WordPress.
+
+Reference: [WordPress Custom HTML Block](https://wordpress.org/documentation/article/custom-html/).
+
+---
+
+## Option 1 · Classic WordPress (Custom HTML Block)
+
+Use WordPress's built-in **Custom HTML** block on any page or post:
+
+1. Create an **Endpoint** form in FlowForm (for example `contact-us`) and set **Redirect URL** in form settings to your WordPress thank-you page (for example `https://example.com/thank-you/`). Optionally add `example.com` to **Allowed Domains**.
+2. In the WordPress block editor, click **+**, add a **Custom HTML** block, and paste:
+
+```html
+<form action="https://forms.example.com/f/contact-us" method="POST">
+  <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+  <p>
+    <label for="ff-name">Name</label><br />
+    <input id="ff-name" type="text" name="name" required />
+  </p>
+
+  <p>
+    <label for="ff-email">Email</label><br />
+    <input id="ff-email" type="email" name="email" required />
+  </p>
+
+  <p>
+    <label for="ff-message">Message</label><br />
+    <textarea id="ff-message" name="message" rows="5" required></textarea>
+  </p>
+
+  <p>
+    <button type="submit">Send Message</button>
+  </p>
+</form>
+```
+
+3. Publish or preview the page and submit a test entry. On success, FlowForm redirects visitors to your configured **Redirect URL** (or returns JSON `200 OK` if no redirect is configured or `Accept: application/json` is sent).
+
+> [!TIP]
+> **Redirect rule:** Always configure **Redirect URL** in the FlowForm form settings, or pass a full URL in `_next` whose domain is listed in the form's **Allowed Domains**. Never use a relative `_next` path like `/thank-you/`, because relative paths resolve on the FlowForm host rather than your WordPress site.
+
+---
+
+## Option 2 · Headless WordPress (Next.js / Astro)
+
+If you use WordPress only as a headless CMS with a modern front end, wire your front-end routes straight to FlowForm using the framework guides:
+
+- [Next.js Quickstart](/guide/endpoints/nextjs)
+- [Astro Quickstart](/guide/endpoints/astro)
+- [Nuxt Quickstart](/guide/endpoints/nuxt)
+- [SvelteKit Quickstart](/guide/endpoints/sveltekit)
+
+---
+
+## Why Use FlowForm Instead of a WordPress Form Plugin
+
+- **No `wp_mail()` or WordPress SMTP plugins needed for this form:** FlowForm handles form storage, encryption, webhooks, chat notifications, and email notifications (using the SMTP provider configured by the FlowForm instance operator) so your WordPress server never sends outbound contact-form email directly.
+- **Zero submission rows in the WordPress database:** Submissions are stored in FlowForm, keeping `wp_posts`, `wp_postmeta`, and custom plugin tables clean across backups, migrations, and caching layers.
+- **Clean static caching:** Plain HTML forms work cleanly behind Cloudflare, WP Engine, Nginx FastCGI cache, and static WordPress exports with zero WordPress nonces breaking cached pages.
+
+---
+
+## Current Limits & WordPress Plugin Status
+
+- **No native Gutenberg block or WordPress plugin yet:** FlowForm currently focuses on standard HTML endpoints and REST API/webhook integrations rather than maintaining a separate WordPress plugin.
+- **Request a Gutenberg block plugin:** Upvote or share your use case in [Flowformhq/flowform#104 - Request: WordPress block plugin (collecting demand)](https://github.com/Flowformhq/flowform/issues/104).

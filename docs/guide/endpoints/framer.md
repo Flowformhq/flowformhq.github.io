@@ -17,6 +17,9 @@ Framer's built-in **Form** component can post JSON submissions straight to any `
 5. Configure your Framer form inputs with clear field names (`name`, `email`, `message`) and choose either inline **Success/Error** states or a redirect URL directly inside Framer's form settings.
 6. FlowForm returns `200 OK` with `{"success": true, "message": "Submission received", "id": "<uuid>"}`, which satisfies Framer's `2xx` delivery requirement so Framer does not retry unnecessarily.
 
+> [!TIP]
+> Framer's webhook is sent from Framer's servers, not the visitor's browser, so origin checks don't apply to it. To make sure only Framer can post to this form, generate a **server secret** in the FlowForm form settings, append it to the webhook URL (`https://forms.example.com/api/v1/f/contact-us?_secret=YOUR_SECRET&_source=framer`), and turn on **Require server secret**. Only do this when the form is used exclusively by the native webhook: a browser embed (Option 2) can't keep a secret.
+
 ---
 
 ## Option 2 · Custom HTML Form via Framer Embed
