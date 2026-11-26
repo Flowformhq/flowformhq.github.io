@@ -119,6 +119,11 @@ FlowForm checks the request's `Origin` header (falling back to `Referer`). If th
 - [SvelteKit](/guide/endpoints/sveltekit) - Server-side form actions with progressive enhancement
 - [Static Site Generators](/guide/endpoints/static-site-generators) - Hugo, Eleventy, and Jekyll partials
 - [Mobile & Server Clients](/guide/endpoints/mobile-and-servers) - curl, React Native, Flutter, Python, and PHP/Laravel
+- [Webflow](/guide/endpoints/webflow) - Native Custom Action and HTML/fetch embeds
+- [Framer](/guide/endpoints/framer) - Native Webhook destination and Embed HTML blocks
+- [Carrd](/guide/endpoints/carrd) - Custom Send to URL forms and Code Embeds
+- [Squarespace & Wix](/guide/endpoints/squarespace-wix) - Code Block and Embed HTML workarounds
+- [WordPress](/guide/endpoints/wordpress) - Classic Custom HTML blocks (no plugin or `wp_mail`) and headless WP
 
 ---
 

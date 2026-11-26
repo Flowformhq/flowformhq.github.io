@@ -57,6 +57,11 @@ export default defineConfig({
             { text: 'SvelteKit', link: '/guide/endpoints/sveltekit' },
             { text: 'Static Site Generators', link: '/guide/endpoints/static-site-generators' },
             { text: 'Mobile & Server Clients', link: '/guide/endpoints/mobile-and-servers' },
+            { text: 'Webflow', link: '/guide/endpoints/webflow' },
+            { text: 'Framer', link: '/guide/endpoints/framer' },
+            { text: 'Carrd', link: '/guide/endpoints/carrd' },
+            { text: 'Squarespace & Wix', link: '/guide/endpoints/squarespace-wix' },
+            { text: 'WordPress', link: '/guide/endpoints/wordpress' },
           ],
         },
         {
