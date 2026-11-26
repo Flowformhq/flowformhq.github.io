@@ -118,10 +118,10 @@ When `_gotcha` or `_honeypot` is non-empty, FlowForm discards the submission and
 
 | Status | Cause | Body |
 | :--- | :--- | :--- |
-| `403` | `Origin` / `Referer` not in `allowed_domains`, or missing/invalid endpoint secret (`X-FlowForm-Secret` / `?_secret=`) | `{"success": false, "error": "Submissions are not permitted from this domain origin."}` |
+| `403` | `Origin` / `Referer` not in the form's Allowed Domains, or the form requires a server secret (`X-FlowForm-Secret` header / `?_secret=`) that is missing or wrong | `{"success": false, "error": "..."}` with `Submissions are not permitted from this domain origin.`, `Endpoint secret is required.` or `Invalid endpoint secret.` |
 | `404` | Form slug not found, form is inactive, or form is not in `endpoint` mode | `{"success": false, "error": "Form endpoint not found or inactive."}` |
 | `422` | Missing/invalid captcha token (`cf-turnstile-response` / `h-captcha-response`), or uploaded file violates size/MIME rules | `{"success": false, "error": "...", "errors": {...}}` |
-| `429` | Per-IP rate limit (`10` req/min/IP) or owner monthly quota exceeded | `{"success": false, "error": "..."}` or standard throttle JSON |
+| `429` | Per-IP rate limit (`10` req/min/IP), or the owner's quota is exhausted on instances that enable metering (`FLOWFORM_METERING_ENABLED`, off by default) | `{"success": false, "error": "..."}` or standard throttle JSON |
 
 ---
 
@@ -131,7 +131,8 @@ FlowForm strips these reserved fields from saved submission data:
 
 - `_gotcha`, `_honeypot`: Silent anti-spam trap. Keep hidden and empty for real users.
 - `_next`, `_redirect`: Optional redirect target for `POST /f/{slug}`. Must be an absolute URL matching `APP_URL`, the form's **Allowed Domains**, or `FLOWFORM_ALLOWED_REDIRECT_HOSTS`.
-- `_replyto`: Preserved as a standard field when submitted unless reserved by mailer configuration; note `_token`, `_method`, `_secret`, `_source`, `cf-turnstile-response`, `_turnstile`, `g-recaptcha-response`, `h-captcha-response`, and `_hcaptcha` are stripped automatically.
+- `_token`, `_method`, `_secret`, `_source`, `cf-turnstile-response`, `_turnstile`, `g-recaptcha-response`, `h-captcha-response`, `_hcaptcha`: also stripped automatically. `_source` (e.g. `?_source=astro`) is kept as attribution in the submission's metadata.
+- `_replyto` is not stripped: it is stored like any other field and becomes the Reply-To of notification emails (falling back to `reply_to`, then `email`).
 - File uploads (`<input type="file" name="attachment" />` with `enctype="multipart/form-data"`) are supported directly on endpoint forms.
 
 ---
